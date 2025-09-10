@@ -1,0 +1,9 @@
+{' ': 0, '0': 1, 't': 2, 'c': 3, 'h': 4, 'a': 5, 'n': 6, '$': 7, 'b': 8, 'o': 9, 'i': 10, 's': 11, 'd': 12, 'p': 13, 'w': 14, 'v': 15, 'f': 16, 'l': 17, 'e': 18, 'm': 19, 'y': 20, 'r': 21, 'u': 22}
+input:  torch.Size([12, 37, 23])
+output:  torch.Size([12, 37, 23])
+input:  torch.Size([12, 37, 23])
+output:  torch.Size([12, 37, 23])
+input:  torch.Size([12, 37, 23])
+output:  torch.Size([12, 37, 23])
+input:  torch.Size([3, 37, 23])
+output:  torch.Size([3, 37, 23])
