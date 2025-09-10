@@ -9,16 +9,22 @@ from configs import *
 
 
 
-def generate(model, dictionary, initial = "a", generate_length=50, EOS='$'):
-    initial = initial.lower()
-    encoding = torch.stack(encoder.encode_example(initial, c2i)).unsqueeze(0)
+def generate(model, c2i, i2c, initial = "a", generate_length=50, EOS='$'):
+    sentence = initial.lower()
+    encoding = torch.stack(encoder.encode_example(sentence, c2i)).unsqueeze(0)
+    for i in range(generate_length):
+        hidden_state = model.no_history_state_vector(encoding.size(0))
+        output, hidden_state = model(encoding, hidden_state)
+        almost_onehot = output.squeeze(0).squeeze(0)
+        idx = almost_onehot[-1].argmax().item()
+        new_char = i2c[idx]
+        if new_char == EOS:
+            break
+        sentence = sentence + new_char
+        encoding = torch.stack(encoder.encode_example(sentence, c2i)).unsqueeze(0)
 
-    hidden_state = model.no_history_state_vector(encoding.size(0))
-    # for i in range(generate_length):
-    output, hidden_state = model(encoding, hidden_state)
-    print(output.shape)
-        # print(output.argmax(dim=-1))
-
+    print(sentence)
+        
 
 
 
@@ -38,6 +44,6 @@ if __name__ == "__main__":
     i2c = env['i2c']
     c2i = env['c2i']
 
-    generate(model,c2i, initial="I", generate_length=10, EOS='$')
+    generate(model,c2i, i2c, initial="pytorch", generate_length=80, EOS='$')
     # generate(model,c2i, initial="My Love", generate_length=10, EOS='$')
     # generate(model,c2i, initial="Py", generate_length=10, EOS='$')

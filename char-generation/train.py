@@ -59,7 +59,7 @@ def test(model, loader, loss_fn):
 def train(loader):
     model = RNNSanityCheck(EMBEDDING_SIZE, HIDDEN_SIZE, n_layers=N_LAYERS, output_size=EMBEDDING_SIZE)
     optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    loss_fn = torch.nn.CrossEntropyLoss(ignore_index=EOS_IDX)
+    loss_fn = torch.nn.CrossEntropyLoss()
     epochs = 400
 
     for epoch in range(1, epochs+1):
@@ -88,7 +88,8 @@ def train(loader):
 def save_env(model):
     c2i = Mapper.char2idx
     i2c = Mapper.idx2char
-    
+    print("char2index: ", c2i)
+    print("index2char: ", i2c)
     torch.save({
         'model_state_dict':model.state_dict(),
         'c2i': c2i,
