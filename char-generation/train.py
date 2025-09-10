@@ -60,9 +60,8 @@ def train(loader):
     model = RNNSanityCheck(EMBEDDING_SIZE, HIDDEN_SIZE, n_layers=N_LAYERS, output_size=EMBEDDING_SIZE)
     optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     loss_fn = torch.nn.CrossEntropyLoss()
-    epochs = 400
 
-    for epoch in range(1, epochs+1):
+    for epoch in range(1, EPOCHS+1):
         model.train()
         optim.zero_grad()
         
