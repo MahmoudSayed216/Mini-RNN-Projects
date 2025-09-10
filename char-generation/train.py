@@ -4,17 +4,18 @@ from model import RNNSanityCheck
 import torch
 from sklearn.metrics import accuracy_score
 from Mapper import Mapper
+from configs import *
+
 
 def get_loader():
-    data_path = "data.txt"
-    TextDataset = RNNDataset(data_path)
-    emb_size = TextDataset.embedding_size
+    TextDataset = RNNDataset(DATA_PATH)
+    
     loader = DataLoader(TextDataset, batch_size=2, shuffle=True)
     
-    return loader, emb_size, TextDataset.padding_idx
+    return loader
 
 
-def test(model, loader, loss_fn, pad_idx=None):
+def test(model, loader, loss_fn):
     
     model.eval()
     outputs = []
@@ -24,12 +25,9 @@ def test(model, loader, loss_fn, pad_idx=None):
 
     def extract_characters_indices(output, targets):
         output = output.argmax(dim=-1)        
-        mask = targets != pad_idx
+        mask = targets != EOS_IDX
         output = output[mask]
         targets = targets[mask]
-        # for t, o in zip(targets, output):
-        #     if t != o:
-        #         print(t, o)
 
         return targets.detach().numpy().tolist(), output.detach().numpy().tolist()
 
@@ -47,11 +45,6 @@ def test(model, loader, loss_fn, pad_idx=None):
 
         loss = loss_fn(logits_flat, targets_flat)
         _targets, _outputs = extract_characters_indices(logits_flat, targets_flat)
-        pred_indices = output.argmax(dim=-1).view(batch, seq_len)
-        for i in range(batch):
-            print("Pred:", "".join([Mapper.idx2char[idx.item()] for idx in pred_indices[i]]))
-            print("True:", "".join([Mapper.idx2char[idx.item()] for idx in label.view(batch, seq_len)[i]]))
-
 
         losses.append(loss.item())
         targets.extend(_targets)
@@ -63,11 +56,10 @@ def test(model, loader, loss_fn, pad_idx=None):
     return avg_loss, acc_score
 
 
-def train(loader, emb_size, padding_idx):
-    print("<PAD> = ", padding_idx)
-    model = RNNSanityCheck(emb_size, 128, n_layers=1, output_size=emb_size)
-    optim = torch.optim.SGD(model.parameters(), lr=0.1)
-    loss_fn = torch.nn.CrossEntropyLoss(ignore_index=padding_idx)
+def train(loader):
+    model = RNNSanityCheck(EMBEDDING_SIZE, HIDDEN_SIZE, n_layers=N_LAYERS, output_size=EMBEDDING_SIZE)
+    optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    loss_fn = torch.nn.CrossEntropyLoss(ignore_index=EOS_IDX)
     epochs = 400
 
     for epoch in range(1, epochs+1):
@@ -88,17 +80,27 @@ def train(loader, emb_size, padding_idx):
             loss = loss_fn(logits_flat, target_flat)
             loss.backward()
             optim.step()
-        if epoch%20 == 0:
-            print("preds on the run: ", logits_flat.argmax(dim=-1))
-        test_loss, test_acc = test(model, loader, loss_fn, padding_idx)
+        test_loss, test_acc = test(model, loader, loss_fn)
         print(f'Epoch {epoch}, Loss: {test_loss:.3f} - Accuracy: {test_acc:.2f}')
 
     return model
 
+def save_env(model):
+    c2i = Mapper.char2idx
+    i2c = Mapper.idx2char
+    
+    torch.save({
+        'model_state_dict':model.state_dict(),
+        'c2i': c2i,
+        'i2c':i2c},
+        "env.pth"
+        )
+
 
 if __name__ == "__main__":
-    loader, emb_size, padding_idx = get_loader()
-    train(loader, emb_size, padding_idx)
+    loader = get_loader()
+    model = train(loader)
+    save_env(model)
 
 
 

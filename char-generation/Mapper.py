@@ -1,3 +1,5 @@
+from configs import *
+
 class Mapper:
 
     char2idx = None
@@ -6,8 +8,9 @@ class Mapper:
     @staticmethod
     def map(string):
         string = sorted(list(string))
-        Mapper.idx2char = {i: c for i, c in enumerate(string)}
+        Mapper.idx2char = {i: c for i, c in enumerate(string, start=1)}
+        Mapper.idx2char[EOS_IDX] = EOS
         Mapper.char2idx = {c:i for i , c in Mapper.idx2char.items()}
 
-
+        print(Mapper.idx2char)
 
